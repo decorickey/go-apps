@@ -10,7 +10,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestScheduleQueryUsecaseFetchAll(t *testing.T) {
+func TestScheduleQueryUsecase_FetchAll(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	Performer1 := entity.Performer{
@@ -94,7 +94,7 @@ func TestScheduleQueryUsecaseFetchAll(t *testing.T) {
 	}
 }
 
-func TestScheduleCommandUsecaseSave(t *testing.T) {
+func TestScheduleCommandUsecase_Save(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	tests := []struct {
