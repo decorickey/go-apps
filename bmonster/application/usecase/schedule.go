@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/decorickey/go-apps/bmonster/domain/entity"
+	"github.com/decorickey/go-apps/lib/timeutil"
 )
 
 var (
@@ -53,14 +54,18 @@ func (u scheduleQueryUsecase) FetchAll() ([]ScheduleQuery, error) {
 
 type ScheduleCommand struct {
 	Studio     string
-	StartYear  string
-	StartMonth string
-	StartDay   string
-	StartHour  string
-	StartMin   string
+	StartYear  int
+	StartMonth time.Month
+	StartDay   int
+	StartHour  int
+	StartMin   int
 	Performer  string
 	Vol        string
 	Err        error
+}
+
+func (c ScheduleCommand) StartAt() time.Time {
+	return time.Date(c.StartYear, c.StartMonth, c.StartDay, c.StartHour, c.StartMin, 0, 0, timeutil.JST)
 }
 
 type ScheduleCommandUsecase interface {
@@ -96,7 +101,7 @@ func (u scheduleCommandUsecase) BulkUpsert(commands []ScheduleCommand) ([]Schedu
 			continue
 		}
 
-		schedule, err := entity.NewSchedule(*program, command.Studio, time.Now())
+		schedule, err := entity.NewSchedule(*program, command.Studio, command.StartAt())
 		if err != nil {
 			hasErr = true
 			commands[i].Err = ErrValidation
