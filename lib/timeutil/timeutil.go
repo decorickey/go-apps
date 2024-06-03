@@ -7,10 +7,10 @@ var (
 )
 
 func init() {
-	if jst, err := time.LoadLocation("Asia/Tokyo"); err != nil {
-		JST = time.FixedZone("JST", 9*60*60)
-	} else {
+	if jst, err := time.LoadLocation("Asia/Tokyo"); err == nil {
 		JST = jst
+	} else {
+		JST = time.FixedZone("JST", 9*60*60)
 	}
 }
 
