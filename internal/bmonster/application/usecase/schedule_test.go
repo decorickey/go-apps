@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/decorickey/go-apps/bmonster/application/usecase"
-	"github.com/decorickey/go-apps/bmonster/domain/entity"
+	"github.com/decorickey/go-apps/internal/bmonster/application/usecase"
+	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
 	"go.uber.org/mock/gomock"
 )
 
@@ -74,20 +74,20 @@ func TestScheduleQueryUsecase_FetchAll(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			scheduleRepo := entity.NewMockScheduleRepository(ctrl)
-			tc.mockScheduleRepo(scheduleRepo)
+			tt.mockScheduleRepo(scheduleRepo)
 			uc := usecase.NewScheduleQueryUsecase(scheduleRepo)
 			gots, err := uc.FetchAll()
 
-			if tc.wantErr && err == nil {
+			if tt.wantErr && err == nil {
 				t.Error("want error")
 
 			}
 			for i, got := range gots {
-				if got != tc.want[i] {
-					t.Error(got, tc.want[i])
+				if got != tt.want[i] {
+					t.Error(got, tt.want[i])
 				}
 			}
 		})
@@ -148,19 +148,19 @@ func TestScheduleCommandUsecase_Save(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			scheduleRepo := entity.NewMockScheduleRepository(ctrl)
-			tc.mockScheduleRepo(scheduleRepo)
+			tt.mockScheduleRepo(scheduleRepo)
 			uc := usecase.NewScheduleCommandUsecase(scheduleRepo)
-			gots, err := uc.BulkUpsert(tc.params)
+			gots, err := uc.BulkUpsert(tt.params)
 
-			if tc.wantErr && err == nil {
+			if tt.wantErr && err == nil {
 				t.Error("want error")
 			}
 			for i, got := range gots {
-				if got != tc.want[i] {
-					t.Error(got, tc.want[i])
+				if got != tt.want[i] {
+					t.Error(got, tt.want[i])
 				}
 			}
 		})

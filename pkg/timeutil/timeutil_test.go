@@ -3,7 +3,7 @@ package timeutil_test
 import (
 	"testing"
 
-	"github.com/decorickey/go-apps/lib/timeutil"
+	"github.com/decorickey/go-apps/pkg/timeutil"
 )
 
 func TestJST(t *testing.T) {

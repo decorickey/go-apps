@@ -3,8 +3,8 @@ package entity_test
 import (
 	"testing"
 
-	"github.com/decorickey/go-apps/bmonster/domain/entity"
-	"github.com/decorickey/go-apps/lib/timeutil"
+	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
+	"github.com/decorickey/go-apps/pkg/timeutil"
 )
 
 func TestNewPerformer(t *testing.T) {

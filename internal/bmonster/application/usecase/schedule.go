@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/decorickey/go-apps/bmonster/domain/entity"
-	"github.com/decorickey/go-apps/lib/timeutil"
+	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
+	"github.com/decorickey/go-apps/pkg/timeutil"
 )
 
 var (
@@ -66,6 +66,15 @@ type ScheduleCommand struct {
 
 func (c ScheduleCommand) StartAt() time.Time {
 	return time.Date(c.StartYear, c.StartMonth, c.StartDay, c.StartHour, c.StartMin, 0, 0, timeutil.JST)
+}
+
+func (c ScheduleCommand) ToQuery() *ScheduleQuery {
+	return &ScheduleQuery{
+		Studio:    c.Studio,
+		StartAt:   c.StartAt(),
+		Performer: c.Performer,
+		Vol:       c.Vol,
+	}
 }
 
 type ScheduleCommandUsecase interface {
