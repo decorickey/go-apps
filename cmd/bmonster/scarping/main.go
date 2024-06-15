@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -10,17 +11,23 @@ import (
 
 func main() {
 	client := &http.Client{Timeout: 5 * time.Second}
-	u := usecase.NewScrapingUsecase(client)
+	su := usecase.NewScrapingUsecase(client)
 
-	performers := u.ScrapingPerformers()
+	performers, err := su.Performers()
+	if err != nil {
+		slog.Error("failed to scraping performers", err)
+	}
 
 	var schedules []usecase.ScheduleQuery
 	for _, performer := range performers {
-		gots := u.ScrapingSchedulesByPerformer(performer.ID, performer.Name)
-		if gots != nil {
-			for _, got := range gots {
-				schedules = append(schedules, *got.ToQuery())
-			}
+		gots, err := su.SchedulesByPerformer(performer.ID, performer.Name)
+		if err != nil {
+			slog.Error("unexpected error", err)
+			continue
+		}
+		for _, got := range gots {
+			schedule := got.ToQuery()
+			schedules = append(schedules, *schedule)
 		}
 	}
 
