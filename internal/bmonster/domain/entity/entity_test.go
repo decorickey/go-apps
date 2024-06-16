@@ -8,7 +8,8 @@ import (
 )
 
 func TestNewPerformer(t *testing.T) {
-	data := []struct {
+	tests := []struct {
+		id        int
 		name      string
 		isSuccess bool
 	}{
@@ -22,18 +23,18 @@ func TestNewPerformer(t *testing.T) {
 		},
 	}
 
-	for _, d := range data {
-		_, err := entity.NewPerformer(d.name)
+	for _, tt := range tests {
+		_, err := entity.NewPerformer(tt.id, tt.name)
 
-		if err != nil && d.isSuccess {
+		if err != nil && tt.isSuccess {
 			t.Error(err)
 		}
 	}
 }
 
 func TestNewProgram(t *testing.T) {
-	performer, _ := entity.NewPerformer("Bob")
-	data := []struct {
+	performer, _ := entity.NewPerformer(0, "Bob")
+	tests := []struct {
 		vol       string
 		isSuccess bool
 	}{
@@ -46,20 +47,20 @@ func TestNewProgram(t *testing.T) {
 			isSuccess: true,
 		},
 	}
-	for _, d := range data {
-		_, err := entity.NewProgram(*performer, d.vol)
+	for _, tt := range tests {
+		_, err := entity.NewProgram(*performer, tt.vol)
 
-		if err != nil && d.isSuccess {
+		if err != nil && tt.isSuccess {
 			t.Error(err)
 		}
 	}
 }
 
 func TestNewSchedule(t *testing.T) {
-	performer, _ := entity.NewPerformer("Bob")
+	performer, _ := entity.NewPerformer(0, "Bob")
 	program, _ := entity.NewProgram(*performer, "MIX1")
 	now := timeutil.NowInJST()
-	data := []struct {
+	tests := []struct {
 		studio    string
 		isSuccess bool
 	}{
@@ -73,10 +74,10 @@ func TestNewSchedule(t *testing.T) {
 		},
 	}
 
-	for _, d := range data {
-		_, err := entity.NewSchedule(*program, d.studio, now)
+	for _, tt := range tests {
+		_, err := entity.NewSchedule(*program, tt.studio, now)
 
-		if err != nil && d.isSuccess {
+		if err != nil && tt.isSuccess {
 			t.Error(err)
 		}
 	}

@@ -48,26 +48,26 @@ func TestScheduleQueryUsecase_FetchAll(t *testing.T) {
 		{
 			name: "failed to find schedules",
 			mockScheduleRepo: func(scheduleRepo *entity.MockScheduleRepository) {
-				scheduleRepo.EXPECT().FindAll().Return([]entity.Schedule{}, errors.New("Error"))
+				scheduleRepo.EXPECT().List().Return([]entity.Schedule{}, errors.New("Error"))
 			},
 			wantErr: true,
 		},
 		{
 			name: "success",
 			mockScheduleRepo: func(scheduleRepo *entity.MockScheduleRepository) {
-				scheduleRepo.EXPECT().FindAll().Return([]entity.Schedule{schedule1, schedule2}, nil)
+				scheduleRepo.EXPECT().List().Return([]entity.Schedule{schedule1, schedule2}, nil)
 			},
 			want: []usecase.ScheduleQuery{
 				{
 					Studio:    schedule1.Studio,
 					StartAt:   schedule1.StartAt,
-					Performer: schedule1.Performer.Name,
+					Performer: *usecase.NewPerformerQueryCommandFromEntity(schedule1.Performer),
 					Vol:       schedule1.Vol,
 				},
 				{
 					Studio:    schedule2.Studio,
 					StartAt:   schedule2.StartAt,
-					Performer: schedule2.Performer.Name,
+					Performer: *usecase.NewPerformerQueryCommandFromEntity(schedule2.Performer),
 					Vol:       schedule2.Vol,
 				},
 			},
@@ -109,13 +109,13 @@ func TestScheduleCommandUsecase_Save(t *testing.T) {
 			mockScheduleRepo: func(scheduleRepo *entity.MockScheduleRepository) {},
 			params: []usecase.ScheduleCommand{
 				{},
-				{Performer: "aaa"},
-				{Performer: "aaa", Vol: "bbb"},
+				{PerformerName: "aaa"},
+				{PerformerName: "aaa", Vol: "bbb"},
 			},
 			want: []usecase.ScheduleCommand{
 				{Err: usecase.ErrValidation},
-				{Performer: "aaa", Err: usecase.ErrValidation},
-				{Performer: "aaa", Vol: "bbb", Err: usecase.ErrValidation},
+				{PerformerName: "aaa", Err: usecase.ErrValidation},
+				{PerformerName: "aaa", Vol: "bbb", Err: usecase.ErrValidation},
 			},
 			wantErr: true,
 		},
@@ -125,10 +125,10 @@ func TestScheduleCommandUsecase_Save(t *testing.T) {
 				scheduleRepo.EXPECT().Save(gomock.Any()).Return(errors.New(""))
 			},
 			params: []usecase.ScheduleCommand{
-				{Performer: "aaa", Vol: "bbb", Studio: "ccc"},
+				{PerformerName: "aaa", Vol: "bbb", Studio: "ccc"},
 			},
 			want: []usecase.ScheduleCommand{
-				{Performer: "aaa", Vol: "bbb", Studio: "ccc", Err: usecase.ErrScheduleRepository},
+				{PerformerName: "aaa", Vol: "bbb", Studio: "ccc", Err: usecase.ErrScheduleRepository},
 			},
 			wantErr: true,
 		},
@@ -138,12 +138,12 @@ func TestScheduleCommandUsecase_Save(t *testing.T) {
 				scheduleRepo.EXPECT().Save(gomock.Any()).Return(nil)
 			},
 			params: []usecase.ScheduleCommand{
-				{Performer: "aaa", Vol: "bbb", Studio: "ccc"},
-				{Performer: "ddd", Vol: "eee", Studio: "fff"},
+				{PerformerName: "aaa", Vol: "bbb", Studio: "ccc"},
+				{PerformerName: "ddd", Vol: "eee", Studio: "fff"},
 			},
 			want: []usecase.ScheduleCommand{
-				{Performer: "aaa", Vol: "bbb", Studio: "ccc"},
-				{Performer: "ddd", Vol: "eee", Studio: "fff"},
+				{PerformerName: "aaa", Vol: "bbb", Studio: "ccc"},
+				{PerformerName: "ddd", Vol: "eee", Studio: "fff"},
 			},
 		},
 	}

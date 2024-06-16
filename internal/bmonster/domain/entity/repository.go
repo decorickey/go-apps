@@ -1,12 +1,11 @@
 package entity
 
 type PerformerRepository interface {
-	FindAll() ([]Performer, error)
+	List() ([]Performer, error)
 }
 
 type ScheduleRepository interface {
-	FindAll() ([]Schedule, error)
-	FindFromToday() ([]Schedule, error)
+	List() ([]Schedule, error)
 	FindByPerformer(performer Performer) ([]Schedule, error)
 	Save(schedules []Schedule) error
 }

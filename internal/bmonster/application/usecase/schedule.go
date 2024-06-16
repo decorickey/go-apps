@@ -17,8 +17,17 @@ var (
 type ScheduleQuery struct {
 	Studio    string
 	StartAt   time.Time
-	Performer string
+	Performer PerformerQueryCommand
 	Vol       string
+}
+
+func NewScheduleQueryFromEntity(e entity.Schedule) *ScheduleQuery {
+	return &ScheduleQuery{
+		Studio:    e.Studio,
+		StartAt:   e.StartAt,
+		Performer: *NewPerformerQueryCommandFromEntity(e.Performer),
+		Vol:       e.Vol,
+	}
 }
 
 type ScheduleQueryUsecase interface {
@@ -36,32 +45,28 @@ type scheduleQueryUsecase struct {
 }
 
 func (u scheduleQueryUsecase) FetchAll() ([]ScheduleQuery, error) {
-	schedules, err := u.scheduleRepo.FindAll()
+	schedules, err := u.scheduleRepo.List()
 	if err != nil {
 		return nil, fmt.Errorf("faild to find schedules: %w", err)
 	}
 	queries := make([]ScheduleQuery, len(schedules))
 	for i, schedule := range schedules {
-		queries[i] = ScheduleQuery{
-			Studio:    schedule.Studio,
-			StartAt:   schedule.StartAt,
-			Performer: schedule.Performer.Name,
-			Vol:       schedule.Vol,
-		}
+		queries[i] = *NewScheduleQueryFromEntity(schedule)
 	}
 	return queries, nil
 }
 
 type ScheduleCommand struct {
-	Studio     string
-	StartYear  int
-	StartMonth time.Month
-	StartDay   int
-	StartHour  int
-	StartMin   int
-	Performer  string
-	Vol        string
-	Err        error
+	Studio        string
+	StartYear     int
+	StartMonth    time.Month
+	StartDay      int
+	StartHour     int
+	StartMin      int
+	PerformerID   int
+	PerformerName string
+	Vol           string
+	Err           error
 }
 
 func (c ScheduleCommand) StartAt() time.Time {
@@ -72,7 +77,7 @@ func (c ScheduleCommand) ToQuery() *ScheduleQuery {
 	return &ScheduleQuery{
 		Studio:    c.Studio,
 		StartAt:   c.StartAt(),
-		Performer: c.Performer,
+		Performer: PerformerQueryCommand{ID: c.PerformerID, Name: c.PerformerName},
 		Vol:       c.Vol,
 	}
 }
@@ -96,7 +101,7 @@ func (u scheduleCommandUsecase) BulkUpsert(commands []ScheduleCommand) ([]Schedu
 	schedules := make([]entity.Schedule, len(commands))
 
 	for i, command := range commands {
-		performer, err := entity.NewPerformer(command.Performer)
+		performer, err := entity.NewPerformer(command.PerformerID, command.PerformerName)
 		if err != nil {
 			hasErr = true
 			commands[i].Err = ErrValidation

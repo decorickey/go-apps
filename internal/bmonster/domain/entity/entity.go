@@ -8,15 +8,15 @@ import (
 var ErrValidation = errors.New("validation error")
 
 type Performer struct {
+	ID   int
 	Name string
 }
 
-func NewPerformer(name string) (*Performer, error) {
+func NewPerformer(id int, name string) (*Performer, error) {
 	if name == "" {
 		return nil, ErrValidation
 	}
-
-	return &Performer{Name: name}, nil
+	return &Performer{ID: id, Name: name}, nil
 }
 
 type Program struct {
@@ -28,11 +28,7 @@ func NewProgram(performer Performer, vol string) (*Program, error) {
 	if vol == "" {
 		return nil, ErrValidation
 	}
-
-	return &Program{
-		Performer: performer,
-		Vol:       vol,
-	}, nil
+	return &Program{Performer: performer, Vol: vol}, nil
 }
 
 type Schedule struct {

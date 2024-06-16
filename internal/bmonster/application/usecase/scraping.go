@@ -130,14 +130,14 @@ func (u ScrapingUsecase) SchedulesByPerformer(perfomerID int, performerName stri
 			ttm = strings.ReplaceAll(strings.ReplaceAll(ttm, "\n", ""), " ", "")
 
 			command := ScheduleCommand{
-				Studio:     tti,
-				StartYear:  ttd.Year(),
-				StartMonth: ttd.Month(),
-				StartDay:   ttd.Day(),
-				StartHour:  hour,
-				StartMin:   min,
-				Performer:  performerName,
-				Vol:        ttm,
+				Studio:        tti,
+				StartYear:     ttd.Year(),
+				StartMonth:    ttd.Month(),
+				StartDay:      ttd.Day(),
+				StartHour:     hour,
+				StartMin:      min,
+				PerformerName: performerName,
+				Vol:           ttm,
 			}
 			commands = append(commands, command)
 		})
