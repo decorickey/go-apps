@@ -4,18 +4,21 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/decorickey/go-apps/internal/bmonster/application/usecase"
+	"github.com/decorickey/go-apps/internal/bmonster/presentation/handler"
 )
 
-type BmonsterHandler struct{}
-
-func (h *BmonsterHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("ping"))
-}
-
 func main() {
-	h := &BmonsterHandler{}
+	c := &http.Client{Timeout: 5 * time.Second}
+	su := usecase.NewScrapingUsecase(c)
+	pqu := usecase.NewMockPerformerQueryUsecase(su)
+	squ := usecase.NewMockScheduleQueryUsecase(su)
+	h := handler.NewBmonsterHandler(pqu, squ)
+
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /ping", h.Ping)
+	mux.HandleFunc("GET /api/bmonster/performers", h.AllPerformers)
+	mux.HandleFunc("GET /api/bmonster/schedules", h.AllSchedules)
 
 	port := ":8080"
 	s := &http.Server{

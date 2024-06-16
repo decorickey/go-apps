@@ -15,10 +15,10 @@ var (
 )
 
 type ScheduleQuery struct {
-	Studio    string
-	StartAt   time.Time
-	Performer PerformerQueryCommand
-	Vol       string
+	Studio    string                `json:"studio"`
+	StartAt   time.Time             `json:"startAt"`
+	Performer PerformerQueryCommand `json:"performer"`
+	Vol       string                `json:"vol"`
 }
 
 func NewScheduleQueryFromEntity(e entity.Schedule) *ScheduleQuery {
@@ -35,9 +35,13 @@ type ScheduleQueryUsecase interface {
 }
 
 func NewScheduleQueryUsecase(scheduleRepo entity.ScheduleRepository) ScheduleQueryUsecase {
-	return scheduleQueryUsecase{
+	return &scheduleQueryUsecase{
 		scheduleRepo: scheduleRepo,
 	}
+}
+
+func NewMockScheduleQueryUsecase(su ScrapingUsecase) ScheduleQueryUsecase {
+	return &mockScheduleQueryUsecase{su: su}
 }
 
 type scheduleQueryUsecase struct {
@@ -54,6 +58,28 @@ func (u scheduleQueryUsecase) FetchAll() ([]ScheduleQuery, error) {
 		queries[i] = *NewScheduleQueryFromEntity(schedule)
 	}
 	return queries, nil
+}
+
+type mockScheduleQueryUsecase struct {
+	su ScrapingUsecase
+}
+
+func (u mockScheduleQueryUsecase) FetchAll() ([]ScheduleQuery, error) {
+	performers, _ := u.su.Performers()
+
+	schedules := make([]ScheduleQuery, 0)
+	for _, performer := range performers {
+		gots, err := u.su.SchedulesByPerformer(performer.ID, performer.Name)
+		if err != nil {
+			continue
+		}
+		for _, got := range gots {
+			schedule := got.ToQuery()
+			schedules = append(schedules, *schedule)
+		}
+	}
+
+	return schedules, nil
 }
 
 type ScheduleCommand struct {
@@ -87,7 +113,7 @@ type ScheduleCommandUsecase interface {
 }
 
 func NewScheduleCommandUsecase(scheduleRepo entity.ScheduleRepository) ScheduleCommandUsecase {
-	return scheduleCommandUsecase{
+	return &scheduleCommandUsecase{
 		scheduleRepo: scheduleRepo,
 	}
 }

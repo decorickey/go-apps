@@ -12,17 +12,22 @@ import (
 	"github.com/decorickey/go-apps/pkg/timeutil"
 )
 
-type ScrapingUsecase struct {
-	client *http.Client
+type ScrapingUsecase interface {
+	Performers() ([]PerformerQueryCommand, error)
+	SchedulesByPerformer(performerID int, performerName string) ([]ScheduleCommand, error)
 }
 
-func NewScrapingUsecase(client *http.Client) *ScrapingUsecase {
-	return &ScrapingUsecase{
+func NewScrapingUsecase(client *http.Client) ScrapingUsecase {
+	return &scrapingUsecase{
 		client: client,
 	}
 }
 
-func (u ScrapingUsecase) Performers() ([]PerformerQueryCommand, error) {
+type scrapingUsecase struct {
+	client *http.Client
+}
+
+func (u scrapingUsecase) Performers() ([]PerformerQueryCommand, error) {
 	res, err := u.client.Get("https://www.b-monster.jp/_inc_/instructors/inst_tpl?mode=filtering")
 	if err != nil {
 		return nil, fmt.Errorf("failed to http request: %w", err)
@@ -67,7 +72,7 @@ func (u ScrapingUsecase) Performers() ([]PerformerQueryCommand, error) {
 	return performers, nil
 }
 
-func (u ScrapingUsecase) SchedulesByPerformer(perfomerID int, performerName string) ([]ScheduleCommand, error) {
+func (u scrapingUsecase) SchedulesByPerformer(perfomerID int, performerName string) ([]ScheduleCommand, error) {
 	date := time.Now().In(timeutil.JST)
 
 	baseUrl, err := url.ParseRequestURI("https://www.b-monster.jp/reserve/")
