@@ -38,19 +38,19 @@ func (m *MockPerformerRepository) EXPECT() *MockPerformerRepositoryMockRecorder 
 	return m.recorder
 }
 
-// List mocks base method.
-func (m *MockPerformerRepository) List() ([]Performer, error) {
+// All mocks base method.
+func (m *MockPerformerRepository) All() ([]Performer, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List")
+	ret := m.ctrl.Call(m, "All")
 	ret0, _ := ret[0].([]Performer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// List indicates an expected call of List.
-func (mr *MockPerformerRepositoryMockRecorder) List() *gomock.Call {
+// All indicates an expected call of All.
+func (mr *MockPerformerRepositoryMockRecorder) All() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPerformerRepository)(nil).List))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockPerformerRepository)(nil).All))
 }
 
 // MockScheduleRepository is a mock of ScheduleRepository interface.
@@ -76,34 +76,34 @@ func (m *MockScheduleRepository) EXPECT() *MockScheduleRepositoryMockRecorder {
 	return m.recorder
 }
 
-// FindByPerformer mocks base method.
-func (m *MockScheduleRepository) FindByPerformer(performer Performer) ([]Schedule, error) {
+// All mocks base method.
+func (m *MockScheduleRepository) All() ([]Schedule, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByPerformer", performer)
+	ret := m.ctrl.Call(m, "All")
 	ret0, _ := ret[0].([]Schedule)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindByPerformer indicates an expected call of FindByPerformer.
-func (mr *MockScheduleRepositoryMockRecorder) FindByPerformer(performer any) *gomock.Call {
+// All indicates an expected call of All.
+func (mr *MockScheduleRepositoryMockRecorder) All() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByPerformer", reflect.TypeOf((*MockScheduleRepository)(nil).FindByPerformer), performer)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockScheduleRepository)(nil).All))
 }
 
-// List mocks base method.
-func (m *MockScheduleRepository) List() ([]Schedule, error) {
+// FilterByPerformer mocks base method.
+func (m *MockScheduleRepository) FilterByPerformer(performer Performer) ([]Schedule, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List")
+	ret := m.ctrl.Call(m, "FilterByPerformer", performer)
 	ret0, _ := ret[0].([]Schedule)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// List indicates an expected call of List.
-func (mr *MockScheduleRepositoryMockRecorder) List() *gomock.Call {
+// FilterByPerformer indicates an expected call of FilterByPerformer.
+func (mr *MockScheduleRepositoryMockRecorder) FilterByPerformer(performer any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockScheduleRepository)(nil).List))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilterByPerformer", reflect.TypeOf((*MockScheduleRepository)(nil).FilterByPerformer), performer)
 }
 
 // Save mocks base method.

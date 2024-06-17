@@ -31,7 +31,7 @@ func NewScheduleQueryFromEntity(e entity.Schedule) *ScheduleQuery {
 }
 
 type ScheduleQueryUsecase interface {
-	FetchAll() ([]ScheduleQuery, error)
+	All() ([]ScheduleQuery, error)
 }
 
 func NewScheduleQueryUsecase(scheduleRepo entity.ScheduleRepository) ScheduleQueryUsecase {
@@ -44,8 +44,8 @@ type scheduleQueryUsecase struct {
 	scheduleRepo entity.ScheduleRepository
 }
 
-func (u scheduleQueryUsecase) FetchAll() ([]ScheduleQuery, error) {
-	schedules, err := u.scheduleRepo.List()
+func (u scheduleQueryUsecase) All() ([]ScheduleQuery, error) {
+	schedules, err := u.scheduleRepo.All()
 	if err != nil {
 		return nil, fmt.Errorf("faild to find schedules: %w", err)
 	}

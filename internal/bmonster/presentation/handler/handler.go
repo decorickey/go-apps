@@ -29,7 +29,7 @@ type bmonsterHandler struct {
 }
 
 func (h bmonsterHandler) AllPerformers(w http.ResponseWriter, r *http.Request) {
-	performers := h.performerQueryUsecase.List()
+	performers := h.performerQueryUsecase.All()
 	b, err := json.Marshal(performers)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -39,7 +39,7 @@ func (h bmonsterHandler) AllPerformers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h bmonsterHandler) AllSchedules(w http.ResponseWriter, r *http.Request) {
-	schedules, err := h.scheduleQueryUsecase.FetchAll()
+	schedules, err := h.scheduleQueryUsecase.All()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

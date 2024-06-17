@@ -14,7 +14,7 @@ type mockPerformerRepository struct {
 	performers []entity.Performer
 }
 
-func (repo mockPerformerRepository) List() ([]entity.Performer, error) {
+func (repo mockPerformerRepository) All() ([]entity.Performer, error) {
 	return repo.performers, nil
 }
 
@@ -22,11 +22,11 @@ type mockScheduleRepository struct {
 	schedules []entity.Schedule
 }
 
-func (repo mockScheduleRepository) List() ([]entity.Schedule, error) {
+func (repo mockScheduleRepository) All() ([]entity.Schedule, error) {
 	return repo.schedules, nil
 }
 
-func (repo mockScheduleRepository) FindByPerformer(performer entity.Performer) ([]entity.Schedule, error) {
+func (repo mockScheduleRepository) FilterByPerformer(performer entity.Performer) ([]entity.Schedule, error) {
 	return nil, nil
 }
 
@@ -40,7 +40,7 @@ func main() {
 	performerQueries, _ := su.Performers()
 	performers := make([]entity.Performer, 0)
 	for _, query := range performerQueries {
-		performer, _ := entity.NewPerformer(query.ID, query.Name)
+		performer, _ := query.ToEntity()
 		performers = append(performers, *performer)
 	}
 	performerRepository := &mockPerformerRepository{performers: performers}

@@ -48,14 +48,14 @@ func TestScheduleQueryUsecase_FetchAll(t *testing.T) {
 		{
 			name: "failed to find schedules",
 			mockScheduleRepo: func(scheduleRepo *entity.MockScheduleRepository) {
-				scheduleRepo.EXPECT().List().Return([]entity.Schedule{}, errors.New("Error"))
+				scheduleRepo.EXPECT().All().Return([]entity.Schedule{}, errors.New("Error"))
 			},
 			wantErr: true,
 		},
 		{
 			name: "success",
 			mockScheduleRepo: func(scheduleRepo *entity.MockScheduleRepository) {
-				scheduleRepo.EXPECT().List().Return([]entity.Schedule{schedule1, schedule2}, nil)
+				scheduleRepo.EXPECT().All().Return([]entity.Schedule{schedule1, schedule2}, nil)
 			},
 			want: []usecase.ScheduleQuery{
 				{
@@ -79,7 +79,7 @@ func TestScheduleQueryUsecase_FetchAll(t *testing.T) {
 			scheduleRepo := entity.NewMockScheduleRepository(ctrl)
 			tt.mockScheduleRepo(scheduleRepo)
 			uc := usecase.NewScheduleQueryUsecase(scheduleRepo)
-			gots, err := uc.FetchAll()
+			gots, err := uc.All()
 
 			if tt.wantErr && err == nil {
 				t.Error("want error")
