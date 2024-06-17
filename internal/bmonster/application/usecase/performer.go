@@ -19,20 +19,26 @@ type PerformerQueryUsecase interface {
 	List() []PerformerQueryCommand
 }
 
-// func NewPerformerQueryUsecase() PerformerQueryUsecase {}
-
-func NewMockPerformerQueryUsecase(su ScrapingUsecase) PerformerQueryUsecase {
-	return &mockPerformerQueryUsecase{su: su}
+func NewPerformerQueryUsecase(performerRepo entity.PerformerRepository) PerformerQueryUsecase {
+	return &performerQueryUsecase{
+		performerRepo: performerRepo,
+	}
 }
 
-type mockPerformerQueryUsecase struct {
-	su ScrapingUsecase
+type performerQueryUsecase struct {
+	performerRepo entity.PerformerRepository
 }
 
-func (u mockPerformerQueryUsecase) List() []PerformerQueryCommand {
-	res, _ := u.su.Performers()
-	slices.SortFunc(res, func(a, b PerformerQueryCommand) int {
+func (u performerQueryUsecase) List() []PerformerQueryCommand {
+	performers, _ := u.performerRepo.List()
+
+	queries := make([]PerformerQueryCommand, 0)
+	for _, performer := range performers {
+		queries = append(queries, *NewPerformerQueryCommandFromEntity(performer))
+	}
+
+	slices.SortFunc(queries, func(a, b PerformerQueryCommand) int {
 		return a.ID - b.ID
 	})
-	return res
+	return queries
 }

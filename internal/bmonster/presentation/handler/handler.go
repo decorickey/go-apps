@@ -10,6 +10,7 @@ import (
 type BmonsterHandler interface {
 	AllPerformers(w http.ResponseWriter, r *http.Request)
 	AllSchedules(w http.ResponseWriter, r *http.Request)
+	SchedulesByPerformer(w http.ResponseWriter, r *http.Request)
 }
 
 func NewBmonsterHandler(
@@ -50,3 +51,5 @@ func (h bmonsterHandler) AllSchedules(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(b)
 }
+
+func (h bmonsterHandler) SchedulesByPerformer(w http.ResponseWriter, r *http.Request) {}

@@ -40,10 +40,6 @@ func NewScheduleQueryUsecase(scheduleRepo entity.ScheduleRepository) ScheduleQue
 	}
 }
 
-func NewMockScheduleQueryUsecase(su ScrapingUsecase) ScheduleQueryUsecase {
-	return &mockScheduleQueryUsecase{su: su}
-}
-
 type scheduleQueryUsecase struct {
 	scheduleRepo entity.ScheduleRepository
 }
@@ -58,28 +54,6 @@ func (u scheduleQueryUsecase) FetchAll() ([]ScheduleQuery, error) {
 		queries[i] = *NewScheduleQueryFromEntity(schedule)
 	}
 	return queries, nil
-}
-
-type mockScheduleQueryUsecase struct {
-	su ScrapingUsecase
-}
-
-func (u mockScheduleQueryUsecase) FetchAll() ([]ScheduleQuery, error) {
-	performers, _ := u.su.Performers()
-
-	schedules := make([]ScheduleQuery, 0)
-	for _, performer := range performers {
-		gots, err := u.su.SchedulesByPerformer(performer.ID, performer.Name)
-		if err != nil {
-			continue
-		}
-		for _, got := range gots {
-			schedule := got.ToQuery()
-			schedules = append(schedules, *schedule)
-		}
-	}
-
-	return schedules, nil
 }
 
 type ScheduleCommand struct {
