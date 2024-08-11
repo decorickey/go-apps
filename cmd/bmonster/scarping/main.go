@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
+	"log"
 	"net/http"
 	"time"
 
@@ -10,26 +10,18 @@ import (
 )
 
 func main() {
-	client := &http.Client{Timeout: 5 * time.Second}
-	su := usecase.NewScrapingUsecase(client)
-
-	performers, err := su.Performers()
+	c := &http.Client{Timeout: 5 * time.Second}
+	u := usecase.NewScrapingUsecase(c)
+	studios, err := u.FetchStudios()
 	if err != nil {
-		slog.Error("failed to scraping performers", err)
+		log.Fatal(fmt.Errorf("failed to fetch studios: %w", err))
 	}
 
-	var schedules []usecase.ScheduleQuery
-	for _, performer := range performers {
-		gots, err := su.SchedulesByPerformer(performer.ID, performer.Name)
-		if err != nil {
-			slog.Error("unexpected error", err)
-			continue
-		}
-		for _, got := range gots {
-			schedule := got.ToQuery()
-			schedules = append(schedules, *schedule)
-		}
+	lessons, err := u.FetchSchedulesByStudios(studios)
+	if err != nil {
+		log.Fatal(fmt.Errorf("failed to fetch schedules: %w", err))
 	}
 
-	fmt.Println(schedules)
+	// TODO repository.Save()
+	fmt.Println(lessons)
 }

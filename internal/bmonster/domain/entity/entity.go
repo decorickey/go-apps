@@ -1,50 +1,30 @@
 package entity
 
 import (
-	"errors"
 	"time"
 )
 
-var ErrValidation = errors.New("validation error")
-
-type Performer struct {
-	ID   int
-	Name string
-}
-
-func NewPerformer(id int, name string) (*Performer, error) {
-	if name == "" {
-		return nil, ErrValidation
-	}
-	return &Performer{ID: id, Name: name}, nil
+type Studio struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type Program struct {
-	Performer Performer
-	Vol       string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
-func NewProgram(performer Performer, vol string) (*Program, error) {
-	if vol == "" {
-		return nil, ErrValidation
-	}
-	return &Program{Performer: performer, Vol: vol}, nil
+type Performer struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 type Schedule struct {
-	Program
-	Studio  string
-	StartAt time.Time
-}
-
-func NewSchedule(program Program, studio string, startAt time.Time) (*Schedule, error) {
-	if studio == "" {
-		return nil, ErrValidation
-	}
-
-	return &Schedule{
-		Program: program,
-		Studio:  studio,
-		StartAt: startAt,
-	}, nil
+	ID          int       `json:"id"`
+	StudioID    int       `json:"studio_id"`
+	ProgramID   int       `json:"program_id"`
+	PerformerID int       `json:"instructor_id"`
+	StartAt     time.Time `json:"start_at"`
+	EndAt       time.Time `json:"end_at"`
+	HashID      string    `json:"id_hash"`
 }

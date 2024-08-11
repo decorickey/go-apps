@@ -1,97 +1,48 @@
 package usecase
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
 	"github.com/decorickey/go-apps/pkg/timeutil"
 )
 
+const apiBaseUrl = "https://b-monster.hacomono.jp/api/master"
+
 type ScrapingUsecase interface {
-	Performers() ([]PerformerQueryCommand, error)
-	SchedulesByPerformer(performerID int, performerName string) ([]ScheduleCommand, error)
+	FetchStudios() ([]entity.Studio, error)
+	FetchSchedulesByStudios(studios []entity.Studio) (*studioLessons, error)
 }
 
-func NewScrapingUsecase(client *http.Client) ScrapingUsecase {
+func NewScrapingUsecase(c *http.Client) ScrapingUsecase {
+	baseUrl, _ := url.Parse(apiBaseUrl)
 	return &scrapingUsecase{
-		client: client,
+		client:  c,
+		baseUrl: baseUrl,
 	}
 }
 
 type scrapingUsecase struct {
-	client *http.Client
+	client  *http.Client
+	baseUrl *url.URL
 }
 
-func (u scrapingUsecase) Performers() ([]PerformerQueryCommand, error) {
-	res, err := u.client.Get("https://www.b-monster.jp/_inc_/instructors/inst_tpl?mode=filtering")
+func (u scrapingUsecase) FetchStudios() ([]entity.Studio, error) {
+	studioUrl := u.baseUrl.JoinPath("studios")
+
+	req, err := http.NewRequest(http.MethodGet, studioUrl.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to http request: %w", err)
-	}
-	defer res.Body.Close()
-
-	if status := res.StatusCode; status != http.StatusOK {
-		return nil, fmt.Errorf("http status code: %d", status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse html: %w", err)
-	}
-
-	performers := make([]PerformerQueryCommand, 0)
-	doc.Find("div.panel").Each(func(i int, s *goquery.Selection) {
-		name := s.Find("h3.ofonts").Text()
-
-		href, ok := s.Find("a.ofonts").Attr("href")
-		if !ok {
-			return
-		}
-
-		u, err := url.ParseRequestURI(href)
-		if err != nil {
-			return
-		}
-
-		ids, ok := u.Query()["instructor_id"]
-		if !ok || len(ids) == 0 {
-			return
-		}
-
-		id, err := strconv.Atoi(ids[0])
-		if err != nil {
-			return
-		}
-
-		performers = append(performers, PerformerQueryCommand{ID: id, Name: name})
-	})
-	return performers, nil
-}
-
-func (u scrapingUsecase) SchedulesByPerformer(perfomerID int, performerName string) ([]ScheduleCommand, error) {
-	date := time.Now().In(timeutil.JST)
-
-	baseUrl, err := url.ParseRequestURI("https://www.b-monster.jp/reserve/")
-	if err != nil {
-		return nil, err
-	}
-	q := baseUrl.Query()
-	q.Set("instructor_id", strconv.Itoa(perfomerID))
-	baseUrl.RawQuery = q.Encode()
-	q.Set("date", date.Format(time.DateOnly))
-
-	req, err := http.NewRequest(http.MethodGet, baseUrl.String(), nil)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate http request: %w", err)
 	}
 
 	res, err := u.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to http request: %w", err)
+		return nil, fmt.Errorf("failed to do http request: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -99,53 +50,102 @@ func (u scrapingUsecase) SchedulesByPerformer(perfomerID int, performerName stri
 		return nil, fmt.Errorf("http status code: %d", status)
 	}
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	buf, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse html: %w", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	commands := make([]ScheduleCommand, 0)
-	days := doc.Find("#scroll-box .flex-no-wrap")
-	days.Each(func(i int, s *goquery.Selection) {
-		ttd := date.AddDate(0, 0, i)
-		day := s.Find(".daily-panel li")
-		day.Each(func(ii int, ss *goquery.Selection) {
-			content := ss.Find(".panel-content")
+	var body studioBody
+	if err := json.Unmarshal(buf, &body); err != nil {
+		return nil, fmt.Errorf("failed to parse response body: %w", err)
+	}
 
-			ttt := content.Find(".tt-time").Text()
-			if ttt == "" {
-				return
-			}
-			ttt = strings.Split(ttt, " ")[0]
-			hour, err := strconv.Atoi(ttt[0:2])
-			min, err := strconv.Atoi(ttt[3:5])
+	return body.Data.Studios.List, nil
+}
+
+func (u scrapingUsecase) FetchSchedulesByStudios(studios []entity.Studio) (*studioLessons, error) {
+	weeks := []time.Time{
+		timeutil.NowInJST(),
+		timeutil.NowInJST().AddDate(0, 0, 7),
+	}
+
+	var results studioLessons
+	for _, studio := range studios {
+		for _, week := range weeks {
+			lessons, err := u.fetchSchedulesByStudio(studio, week)
 			if err != nil {
-				return
+				return nil, err
 			}
+			results.Programs = append(results.Programs, lessons.Programs...)
+			results.Instructors = append(results.Instructors, lessons.Instructors...)
+			results.Items = append(results.Items, lessons.Items...)
+		}
+	}
+	return &results, nil
+}
 
-			tti := content.Find(".tt-instructor").Text()
-			if tti == "" {
-				return
-			}
+func (u scrapingUsecase) fetchSchedulesByStudio(studio entity.Studio, dateFrom time.Time) (*studioLessons, error) {
+	scheduleUrl := u.baseUrl.JoinPath("studio-lessons", "schedule")
 
-			ttm := content.Find(".tt-mode").Text()
-			if ttm == "" {
-				return
-			}
-			ttm = strings.ReplaceAll(strings.ReplaceAll(ttm, "\n", ""), " ", "")
+	query := scheduleQuery{StudioID: studio.ID, DateFrom: dateFrom.Format(time.DateOnly)}
+	q, err := json.Marshal(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate query params: %w", err)
+	}
 
-			command := ScheduleCommand{
-				Studio:        tti,
-				StartYear:     ttd.Year(),
-				StartMonth:    ttd.Month(),
-				StartDay:      ttd.Day(),
-				StartHour:     hour,
-				StartMin:      min,
-				PerformerName: performerName,
-				Vol:           ttm,
-			}
-			commands = append(commands, command)
-		})
-	})
-	return commands, nil
+	v := url.Values{}
+	v.Set("query", string(q))
+
+	scheduleUrl.RawQuery = v.Encode()
+	req, err := http.NewRequest(http.MethodGet, scheduleUrl.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate http request: %w", err)
+	}
+
+	res, err := u.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do http request: %w", err)
+	}
+	defer res.Body.Close()
+
+	if status := res.StatusCode; status != http.StatusOK {
+		return nil, fmt.Errorf("http status code: %d", status)
+	}
+
+	buf, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var body scheduleBody
+	if err := json.Unmarshal(buf, &body); err != nil {
+		return nil, fmt.Errorf("failed to parse response body: %w", err)
+	}
+
+	return &body.Data.StudioLessons, nil
+}
+
+type studioBody struct {
+	Data struct {
+		Studios struct {
+			List []entity.Studio `json:"list"`
+		} `json:"studios"`
+	} `json:"data"`
+}
+
+type scheduleQuery struct {
+	StudioID int    `json:"studio_id"`
+	DateFrom string `json:"date_from"`
+}
+
+type scheduleBody struct {
+	Data struct {
+		StudioLessons studioLessons `json:"studio_lessons"`
+	} `json:"data"`
+}
+
+type studioLessons struct {
+	Programs    []entity.Program   `json:"programs"`
+	Instructors []entity.Performer `json:"instructors"`
+	Items       []entity.Schedule  `json:"items"`
 }

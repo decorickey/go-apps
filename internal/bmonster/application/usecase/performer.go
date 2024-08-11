@@ -1,52 +1,30 @@
 package usecase
 
 import (
-	"slices"
+	"fmt"
 
 	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
+	"github.com/decorickey/go-apps/internal/bmonster/domain/repository"
 )
 
-type PerformerQueryCommand struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-func NewPerformerQueryCommandFromEntity(e entity.Performer) *PerformerQueryCommand {
-	return &PerformerQueryCommand{ID: e.ID, Name: e.Name}
-}
-
-func (qc PerformerQueryCommand) ToEntity() (*entity.Performer, error) {
-	p, err := entity.NewPerformer(qc.ID, qc.Name)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
-}
-
 type PerformerQueryUsecase interface {
-	All() []PerformerQueryCommand
+	FetchAll() ([]entity.Performer, error)
 }
 
-func NewPerformerQueryUsecase(performerRepo entity.PerformerRepository) PerformerQueryUsecase {
-	return &performerQueryUsecase{
+func NewPerformerQueryUsecase(performerRepo repository.PerformerRepository) PerformerQueryUsecase {
+	return performerQueryUsecase{
 		performerRepo: performerRepo,
 	}
 }
 
 type performerQueryUsecase struct {
-	performerRepo entity.PerformerRepository
+	performerRepo repository.PerformerRepository
 }
 
-func (u performerQueryUsecase) All() []PerformerQueryCommand {
-	performers, _ := u.performerRepo.All()
-
-	queries := make([]PerformerQueryCommand, 0)
-	for _, performer := range performers {
-		queries = append(queries, *NewPerformerQueryCommandFromEntity(performer))
+func (u performerQueryUsecase) FetchAll() ([]entity.Performer, error) {
+	performers, err := u.performerRepo.FindAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch performers: %w", err)
 	}
-
-	slices.SortFunc(queries, func(a, b PerformerQueryCommand) int {
-		return a.ID - b.ID
-	})
-	return queries
+	return performers, nil
 }
