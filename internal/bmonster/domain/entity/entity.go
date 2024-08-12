@@ -5,26 +5,26 @@ import (
 )
 
 type Studio struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-type Program struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID   int
+	Name string
 }
 
 type Performer struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID   int
+	Name string
+}
+
+type Program struct {
+	ID   int
+	Name string
 }
 
 type Schedule struct {
-	ID          int       `json:"id"`
-	StudioID    int       `json:"studio_id"`
-	ProgramID   int       `json:"program_id"`
-	PerformerID int       `json:"instructor_id"`
-	StartAt     time.Time `json:"start_at"`
-	EndAt       time.Time `json:"end_at"`
-	HashID      string    `json:"id_hash"`
+	ID          int
+	StudioID    int
+	ProgramID   int
+	PerformerID int
+	StartAt     time.Time
+	EndAt       time.Time
+	HashID      string
 }

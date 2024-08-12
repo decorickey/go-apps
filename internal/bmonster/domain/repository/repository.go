@@ -4,12 +4,10 @@ import "github.com/decorickey/go-apps/internal/bmonster/domain/entity"
 
 type StudioRepository interface {
 	Save([]entity.Studio) error
-	FindAll() ([]entity.Studio, error)
 }
 
 type PerformerRepository interface {
 	Save([]entity.Performer) error
-	FindAll() ([]entity.Performer, error)
 }
 
 type ProgramRepository interface {
@@ -17,5 +15,5 @@ type ProgramRepository interface {
 }
 
 type ScheduleRepository interface {
-	Save([]entity.Schedule)
+	Save([]entity.Schedule) error
 }

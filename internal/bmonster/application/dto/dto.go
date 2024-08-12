@@ -5,9 +5,7 @@ import (
 )
 
 var (
-	// {"hh:mm:ss": idx}
-	TimeTable map[string]int
-	timeTable []string = []string{
+	timeTableList []string = []string{
 		"06:50:00",
 		"08:10:00",
 		"08:15:00",
@@ -30,14 +28,28 @@ var (
 		"20:05:00",
 		"21:20:00",
 	}
+	// {"hh:mm:ss": idx}
+	timeTableMap map[string]int
 )
 
 func init() {
-	TimeTable = make(map[string]int, len(timeTable))
-	for i, v := range timeTable {
-		TimeTable[v] = i
+	timeTableMap = make(map[string]int, len(timeTableList))
+	for i, v := range timeTableList {
+		timeTableMap[v] = i
 	}
 }
+
+type Studio struct {
+	ID   int
+	Name string
+}
+
+type Performer struct {
+	ID   int
+	Name string
+}
+
+type TimeTable []*Schedule
 
 type Schedule struct {
 	StudioName    string    `json:"studio_name"`
@@ -57,103 +69,19 @@ func (s Schedule) TimeOnlyString() string {
 }
 
 func (s Schedule) TimeTableIndex() int {
-	return TimeTable[s.TimeOnlyString()]
+	return timeTableMap[s.TimeOnlyString()]
 }
 
-type SchedulesWithTimeTable []*Schedule
 type Schedules []Schedule
 
-func (s Schedules) WithTimeTable() SchedulesWithTimeTable {
-	ss := make(SchedulesWithTimeTable, len(timeTable))
+func (s Schedules) ToTimeTable() TimeTable {
+	if len(s) > len(timeTableList) {
+		return nil
+	}
+
+	ss := make(TimeTable, len(timeTableList))
 	for _, v := range s {
 		ss[v.TimeTableIndex()] = &v
 	}
 	return ss
-}
-
-func (s Schedules) PerDate() []SchedulesPerDate {
-	m := map[string]Schedules{}
-	for _, v := range s {
-		m[v.DateOnlyString()] = append(m[v.DateOnlyString()], v)
-	}
-
-	results := []SchedulesPerDate{}
-	for k, v := range m {
-		result := SchedulesPerDate{
-			Date:      k,
-			Schedules: v,
-		}
-		results = append(results, result)
-	}
-
-	return results
-}
-
-func (s Schedules) PerDateAndStudio() []SchedulesPerDateAndStudio {
-	results := []SchedulesPerDateAndStudio{}
-	for _, v := range s.PerDate() {
-		results = append(results, v.AndStudio()...)
-	}
-	return results
-}
-
-func (s Schedules) PerDateAndPerformer() []SchedulesPerDateAndPerformer {
-	results := []SchedulesPerDateAndPerformer{}
-	for _, v := range s.PerDate() {
-		results = append(results, v.AndPerformer()...)
-	}
-	return results
-}
-
-type SchedulesPerDate struct {
-	Date      string    `json:"date"`
-	Schedules Schedules `json:"schedules"`
-}
-
-func (s SchedulesPerDate) AndStudio() []SchedulesPerDateAndStudio {
-	m := map[string]Schedules{}
-	for _, v := range s.Schedules {
-		m[v.StudioName] = append(m[v.StudioName], v)
-	}
-
-	results := []SchedulesPerDateAndStudio{}
-	for k, v := range m {
-		result := SchedulesPerDateAndStudio{
-			Date:       s.Date,
-			StudioName: k,
-			Schedules:  v.WithTimeTable(),
-		}
-		results = append(results, result)
-	}
-	return results
-}
-
-func (s SchedulesPerDate) AndPerformer() []SchedulesPerDateAndPerformer {
-	m := map[string]Schedules{}
-	for _, v := range s.Schedules {
-		m[v.PerformerName] = append(m[v.PerformerName], v)
-	}
-
-	results := []SchedulesPerDateAndPerformer{}
-	for k, v := range m {
-		result := SchedulesPerDateAndPerformer{
-			Date:          s.Date,
-			PerformerName: k,
-			Schedules:     v.WithTimeTable(),
-		}
-		results = append(results, result)
-	}
-	return results
-}
-
-type SchedulesPerDateAndStudio struct {
-	Date       string                 `json:"date"`
-	StudioName string                 `json:"studio_name"`
-	Schedules  SchedulesWithTimeTable `json:"schedules"`
-}
-
-type SchedulesPerDateAndPerformer struct {
-	Date          string                 `json:"date"`
-	PerformerName string                 `json:"performer_name"`
-	Schedules     SchedulesWithTimeTable `json:"schedules"`
 }

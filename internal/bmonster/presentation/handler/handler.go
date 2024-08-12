@@ -4,37 +4,34 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/decorickey/go-apps/internal/bmonster/application/usecase"
+	"github.com/decorickey/go-apps/internal/bmonster/application/dao"
 )
 
 type Handler interface {
 	FetchAllStudios(w http.ResponseWriter, r *http.Request)
 	FetchAllPerformers(w http.ResponseWriter, r *http.Request)
-	FetchAllSchedules(w http.ResponseWriter, r *http.Request)
-	FetchAllSchedulesPerStudio(w http.ResponseWriter, r *http.Request)
-	FetchAllSchedulesPerPerformer(w http.ResponseWriter, r *http.Request)
 }
 
 func NewHandler(
-	studioQueryUsecase usecase.StudioQueryUsecase,
-	performerQueryUsecase usecase.PerformerQueryUsecase,
-	scheduleQueryUsecase usecase.ScheduleQueryUsecase,
+	studioDao dao.StudioDAO,
+	performerDao dao.PerformerDAO,
+	scheduleDao dao.ScheduleDAO,
 ) Handler {
 	return &handler{
-		studioQueryUsecase:    studioQueryUsecase,
-		performerQueryUsecase: performerQueryUsecase,
-		scheduleQueryUsecase:  scheduleQueryUsecase,
+		studioDao:    studioDao,
+		performerDao: performerDao,
+		scheduleDao:  scheduleDao,
 	}
 }
 
 type handler struct {
-	studioQueryUsecase    usecase.StudioQueryUsecase
-	performerQueryUsecase usecase.PerformerQueryUsecase
-	scheduleQueryUsecase  usecase.ScheduleQueryUsecase
+	studioDao    dao.StudioDAO
+	performerDao dao.PerformerDAO
+	scheduleDao  dao.ScheduleDAO
 }
 
 func (h handler) FetchAllStudios(w http.ResponseWriter, r *http.Request) {
-	studios, err := h.studioQueryUsecase.FetchAll()
+	studios, err := h.studioDao.FetchAll()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -48,54 +45,12 @@ func (h handler) FetchAllStudios(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h handler) FetchAllPerformers(w http.ResponseWriter, r *http.Request) {
-	performers, err := h.performerQueryUsecase.FetchAll()
+	performers, err := h.performerDao.FetchAll()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	b, err := json.Marshal(performers)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write(b)
-}
-
-func (h handler) FetchAllSchedules(w http.ResponseWriter, r *http.Request) {
-	schedules, err := h.scheduleQueryUsecase.FetchAll()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	b, err := json.Marshal(schedules)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write(b)
-}
-
-func (h handler) FetchAllSchedulesPerStudio(w http.ResponseWriter, r *http.Request) {
-	schedules, err := h.scheduleQueryUsecase.FetchAll()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	b, err := json.Marshal(schedules.PerDateAndStudio())
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Write(b)
-}
-
-func (h handler) FetchAllSchedulesPerPerformer(w http.ResponseWriter, r *http.Request) {
-	schedules, err := h.scheduleQueryUsecase.FetchAll()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	b, err := json.Marshal(schedules.PerDateAndPerformer())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
