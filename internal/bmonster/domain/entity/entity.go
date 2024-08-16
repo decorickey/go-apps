@@ -5,25 +5,25 @@ import (
 )
 
 type Studio struct {
-	ID   int
+	ID   uint
 	Name string
 }
 
 type Performer struct {
-	ID   int
+	ID   uint
 	Name string
 }
 
 type Program struct {
-	ID   int
+	ID   uint
 	Name string
 }
 
 type Schedule struct {
-	ID          int
-	StudioID    int
-	ProgramID   int
-	PerformerID int
+	ID          uint
+	StudioID    uint
+	ProgramID   uint
+	PerformerID uint
 	StartAt     time.Time
 	EndAt       time.Time
 	HashID      string

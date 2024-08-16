@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
@@ -15,11 +16,61 @@ import (
 
 const apiBaseUrl = "https://b-monster.hacomono.jp/api/master"
 
+type studioBody struct {
+	Data struct {
+		Studios struct {
+			List []studio `json:"list"`
+		} `json:"studios"`
+	} `json:"data"`
+}
+
+type scheduleQuery struct {
+	StudioID uint   `json:"studio_id"`
+	DateFrom string `json:"date_from"`
+}
+
+type scheduleBody struct {
+	Data struct {
+		StudioLessons struct {
+			Programs    []program   `json:"programs"`
+			Instructors []performer `json:"instructors"`
+			Items       []schedule  `json:"items"`
+		} `json:"studio_lessons"`
+	} `json:"data"`
+}
+
+type studio struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+func (s studio) toEntity() *entity.Studio {
+	return &entity.Studio{ID: s.ID, Name: s.Name}
+}
+
+type program struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+func (p program) toEntity() *entity.Program {
+	return &entity.Program{ID: p.ID, Name: p.Name}
+}
+
+type performer struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+func (p performer) toEntity() *entity.Performer {
+	return &entity.Performer{ID: p.ID, Name: p.Name}
+}
+
 type schedule struct {
-	ID          int       `json:"id"`
-	StudioID    int       `json:"studio_id"`
-	PerformerID int       `json:"instructor_id"`
-	ProgramID   int       `json:"program_id"`
+	ID          uint      `json:"id"`
+	StudioID    uint      `json:"studio_id"`
+	PerformerID uint      `json:"instructor_id"`
+	ProgramID   uint      `json:"program_id"`
 	StartAt     time.Time `json:"start_at"`
 	EndAt       time.Time `json:"end_at"`
 	HashID      string    `json:"id_hash"`
@@ -37,52 +88,6 @@ func (s schedule) toEntity() *entity.Schedule {
 	}
 }
 
-type studioBody struct {
-	Data struct {
-		Studios struct {
-			List []studio `json:"list"`
-		} `json:"studios"`
-	} `json:"data"`
-}
-
-type scheduleQuery struct {
-	StudioID int    `json:"studio_id"`
-	DateFrom string `json:"date_from"`
-}
-
-type scheduleBody struct {
-	Data struct {
-		StudioLessons struct {
-			Programs    []program   `json:"programs"`
-			Instructors []performer `json:"instructors"`
-			Items       []schedule  `json:"items"`
-		} `json:"studio_lessons"`
-	} `json:"data"`
-}
-
-type studio struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-func (s studio) toEntity() *entity.Studio {
-	return &entity.Studio{ID: s.ID, Name: s.Name}
-}
-
-type program struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
-func (p program) toEntity() *entity.Program {
-	return &entity.Program{ID: p.ID, Name: p.Name}
-}
-
-type performer struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 type ScrapingUsecase interface {
 	FetchStudios() ([]entity.Studio, error)
 	FetchSchedulesByStudios([]entity.Studio) ([]entity.Performer, []entity.Program, []entity.Schedule, error)
@@ -90,12 +95,12 @@ type ScrapingUsecase interface {
 }
 
 func NewScrapingUsecase(
-	c *http.Client,
 	studioRepo repository.StudioRepository,
 	performerRepo repository.PerformerRepository,
 	programRepo repository.ProgramRepository,
 	scheduleRepo repository.ScheduleRepository,
 ) ScrapingUsecase {
+	c := &http.Client{Timeout: 5 * time.Second}
 	baseUrl, _ := url.Parse(apiBaseUrl)
 	return &scrapingUsecase{
 		client:        c,
@@ -173,6 +178,10 @@ func (u scrapingUsecase) FetchSchedulesByStudios(studios []entity.Studio) ([]ent
 			schedules = append(schedules, sches...)
 		}
 	}
+	slices.SortFunc(performers, func(a, b entity.Performer) int { return int(a.ID) - int(b.ID) })
+	performers = slices.CompactFunc(performers, func(a, b entity.Performer) bool { return a == b })
+	slices.SortFunc(programs, func(a, b entity.Program) int { return int(a.ID) - int(b.ID) })
+	programs = slices.CompactFunc(programs, func(a, b entity.Program) bool { return a == b })
 	return performers, programs, schedules, nil
 }
 
@@ -229,10 +238,6 @@ func (u scrapingUsecase) fetchSchedulesByStudio(studio entity.Studio, dateFrom t
 		schedules = append(schedules, *v.toEntity())
 	}
 	return performers, programs, schedules, nil
-}
-
-func (p performer) toEntity() *entity.Performer {
-	return &entity.Performer{ID: p.ID, Name: p.Name}
 }
 
 func (u scrapingUsecase) Save(studios []entity.Studio, performers []entity.Performer, programs []entity.Program, schedules []entity.Schedule) error {

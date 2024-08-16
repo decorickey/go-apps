@@ -40,16 +40,16 @@ func init() {
 }
 
 type Studio struct {
-	ID   int
-	Name string
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
 type Performer struct {
-	ID   int
-	Name string
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
-type TimeTable []*Schedule
+type Timetable []*Schedule
 
 type Schedule struct {
 	StudioName    string    `json:"studio_name"`
@@ -74,12 +74,12 @@ func (s Schedule) TimeTableIndex() int {
 
 type Schedules []Schedule
 
-func (s Schedules) ToTimeTable() TimeTable {
+func (s Schedules) ToTimeTable() Timetable {
 	if len(s) > len(timeTableList) {
 		return nil
 	}
 
-	ss := make(TimeTable, len(timeTableList))
+	ss := make(Timetable, len(timeTableList))
 	for _, v := range s {
 		ss[v.TimeTableIndex()] = &v
 	}
