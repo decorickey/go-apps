@@ -9,6 +9,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/decorickey/go-apps/internal/bmonster/application/command"
 	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
 	"github.com/decorickey/go-apps/internal/bmonster/domain/repository"
 	"github.com/decorickey/go-apps/pkg/timeutil"
@@ -16,76 +17,9 @@ import (
 
 const apiBaseUrl = "https://b-monster.hacomono.jp/api/master"
 
-type studioBody struct {
-	Data struct {
-		Studios struct {
-			List []studio `json:"list"`
-		} `json:"studios"`
-	} `json:"data"`
-}
-
 type scheduleQuery struct {
 	StudioID uint   `json:"studio_id"`
 	DateFrom string `json:"date_from"`
-}
-
-type scheduleBody struct {
-	Data struct {
-		StudioLessons struct {
-			Programs    []program   `json:"programs"`
-			Instructors []performer `json:"instructors"`
-			Items       []schedule  `json:"items"`
-		} `json:"studio_lessons"`
-	} `json:"data"`
-}
-
-type studio struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}
-
-func (s studio) toEntity() *entity.Studio {
-	return &entity.Studio{ID: s.ID, Name: s.Name}
-}
-
-type program struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}
-
-func (p program) toEntity() *entity.Program {
-	return &entity.Program{ID: p.ID, Name: p.Name}
-}
-
-type performer struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-}
-
-func (p performer) toEntity() *entity.Performer {
-	return &entity.Performer{ID: p.ID, Name: p.Name}
-}
-
-type schedule struct {
-	ID          uint      `json:"id"`
-	StudioID    uint      `json:"studio_id"`
-	PerformerID uint      `json:"instructor_id"`
-	ProgramID   uint      `json:"program_id"`
-	StartAt     time.Time `json:"start_at"`
-	EndAt       time.Time `json:"end_at"`
-	HashID      string    `json:"id_hash"`
-}
-
-func (s schedule) toEntity() *entity.Schedule {
-	return &entity.Schedule{
-		ID:          s.ID,
-		StudioID:    s.StudioID,
-		PerformerID: s.PerformerID,
-		ProgramID:   s.ProgramID,
-		StartAt:     s.StartAt,
-		EndAt:       s.EndAt,
-		HashID:      s.HashID,
-	}
 }
 
 type ScrapingUsecase interface {
@@ -144,14 +78,14 @@ func (u scrapingUsecase) FetchStudios() ([]entity.Studio, error) {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var body studioBody
+	var body command.StudioBody
 	if err := json.Unmarshal(buf, &body); err != nil {
 		return nil, fmt.Errorf("failed to parse response body: %w", err)
 	}
 
 	result := make([]entity.Studio, len(body.Data.Studios.List))
 	for i, v := range body.Data.Studios.List {
-		result[i] = *v.toEntity()
+		result[i] = *v.ToEntity()
 	}
 	return result, nil
 }
@@ -178,6 +112,7 @@ func (u scrapingUsecase) FetchSchedulesByStudios(studios []entity.Studio) ([]ent
 			schedules = append(schedules, sches...)
 		}
 	}
+
 	slices.SortFunc(performers, func(a, b entity.Performer) int { return int(a.ID) - int(b.ID) })
 	performers = slices.CompactFunc(performers, func(a, b entity.Performer) bool { return a == b })
 	slices.SortFunc(programs, func(a, b entity.Program) int { return int(a.ID) - int(b.ID) })
@@ -218,7 +153,7 @@ func (u scrapingUsecase) fetchSchedulesByStudio(studio entity.Studio, dateFrom t
 		return nil, nil, nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var body scheduleBody
+	var body command.ScheduleBody
 	if err := json.Unmarshal(buf, &body); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to parse response body: %w", err)
 	}
@@ -229,35 +164,31 @@ func (u scrapingUsecase) fetchSchedulesByStudio(studio entity.Studio, dateFrom t
 		schedules  []entity.Schedule
 	)
 	for _, v := range body.Data.StudioLessons.Instructors {
-		performers = append(performers, *v.toEntity())
+		performers = append(performers, *v.ToEntity())
 	}
 	for _, v := range body.Data.StudioLessons.Programs {
-		programs = append(programs, *v.toEntity())
+		programs = append(programs, *v.ToEntity())
 	}
 	for _, v := range body.Data.StudioLessons.Items {
-		schedules = append(schedules, *v.toEntity())
+		schedules = append(schedules, *v.ToEntity())
 	}
 	return performers, programs, schedules, nil
 }
 
 func (u scrapingUsecase) Save(studios []entity.Studio, performers []entity.Performer, programs []entity.Program, schedules []entity.Schedule) error {
-	err := u.studioRepo.Save(studios)
-	if err != nil {
+	if err := u.studioRepo.Save(studios); err != nil {
 		return fmt.Errorf("failed to save Studios: %w", err)
 	}
 
-	err = u.performerRepo.Save(performers)
-	if err != nil {
+	if err := u.performerRepo.Save(performers); err != nil {
 		return fmt.Errorf("failed to save Performers: %w", err)
 	}
 
-	err = u.programRepo.Save(programs)
-	if err != nil {
+	if err := u.programRepo.Save(programs); err != nil {
 		return fmt.Errorf("failed to save Programs: %w", err)
 	}
 
-	err = u.scheduleRepo.Save(schedules)
-	if err != nil {
+	if err := u.scheduleRepo.Save(schedules); err != nil {
 		return fmt.Errorf("failed to save Schedules: %w", err)
 	}
 

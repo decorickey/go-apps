@@ -16,13 +16,16 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
-		Logger: logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
-			SlowThreshold:             200 * time.Millisecond,
-			LogLevel:                  logger.Info,
-			IgnoreRecordNotFoundError: false,
-			Colorful:                  true,
-		})})
+	db, err := gorm.Open(
+		sqlite.Open("file::memory:?cache=shared"),
+		&gorm.Config{
+			Logger: logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+				SlowThreshold:             200 * time.Millisecond,
+				LogLevel:                  logger.Info,
+				IgnoreRecordNotFoundError: false,
+				Colorful:                  true,
+			})},
+	)
 	if err != nil {
 		log.Fatal(fmt.Errorf("failed to connect database: %w", err))
 	}
