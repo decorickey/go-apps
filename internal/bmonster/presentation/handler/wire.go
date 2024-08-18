@@ -11,10 +11,7 @@ import (
 func InitializeHandler() Handler {
 	wire.Build(
 		NewHandler,
-		sql.NewStudioDao,
-		sql.NewPerformerDao,
-		sql.NewTimetableDao,
-		sql.NewDB,
+		sql.DaoSet,
 	)
 	return handler{}
 }

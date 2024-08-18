@@ -11,11 +11,7 @@ import (
 func InitializeScrapingUsecase() ScrapingUsecase {
 	wire.Build(
 		NewScrapingUsecase,
-		sql.NewStudioRepository,
-		sql.NewProgramRepository,
-		sql.NewPerformerRepository,
-		sql.NewScheduleRepository,
-		sql.NewDB,
+		sql.RepositorySet,
 	)
 	return scrapingUsecase{}
 }
