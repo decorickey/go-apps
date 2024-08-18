@@ -1,3 +1,4 @@
+//go:generate mockgen -source=repository.go -destination=./mock_repository.go -package=repository
 package repository
 
 import "github.com/decorickey/go-apps/internal/bmonster/domain/entity"
