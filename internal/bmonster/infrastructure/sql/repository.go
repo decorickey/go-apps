@@ -3,7 +3,16 @@ package sql
 import (
 	"github.com/decorickey/go-apps/internal/bmonster/domain/entity"
 	"github.com/decorickey/go-apps/internal/bmonster/domain/repository"
+	"github.com/google/wire"
 	"gorm.io/gorm"
+)
+
+var RepositorySet = wire.NewSet(
+	NewDB,
+	NewStudioRepository,
+	NewProgramRepository,
+	NewPerformerRepository,
+	NewScheduleRepository,
 )
 
 func NewStudioRepository(db *gorm.DB) repository.StudioRepository {

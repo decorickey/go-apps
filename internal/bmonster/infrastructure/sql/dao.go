@@ -5,7 +5,15 @@ import (
 
 	"github.com/decorickey/go-apps/internal/bmonster/application/dao"
 	"github.com/decorickey/go-apps/internal/bmonster/application/dto"
+	"github.com/google/wire"
 	"gorm.io/gorm"
+)
+
+var DaoSet = wire.NewSet(
+	NewDB,
+	NewStudioDao,
+	NewPerformerDao,
+	NewTimetableDao,
 )
 
 func NewStudioDao(db *gorm.DB) dao.StudioDAO {
