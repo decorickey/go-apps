@@ -1,0 +1,70 @@
+openapi: 3.0.1
+info:
+  title: go-apps
+  description: ''
+  version: 1.0.0
+tags: []
+paths:
+  /api/bmonster/studios:
+    get:
+      summary: スタジオ一覧取得
+      deprecated: false
+      description: ''
+      tags: []
+      parameters: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Studio'
+          headers: {}
+      security: []
+  /api/bmonster/performers:
+    get:
+      summary: パフォーマー一覧取得
+      deprecated: false
+      description: ''
+      tags: []
+      parameters: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Performer'
+          headers: {}
+      security: []
+components:
+  schemas:
+    Performer:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID番号
+        name:
+          type: string
+          description: 名前
+      required:
+        - id
+        - name
+    Studio:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          description: 名前
+      required:
+        - id
+        - name
+  securitySchemes: {}
+servers: []

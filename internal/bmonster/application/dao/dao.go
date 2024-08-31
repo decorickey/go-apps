@@ -1,4 +1,4 @@
-//go:generate mockgen -source=dao.go -destination=./mock_dao.go -package=dao
+//go:generate go run go.uber.org/mock/mockgen -source=dao.go -destination=mock_dao.go -package=dao
 package dao
 
 import (
