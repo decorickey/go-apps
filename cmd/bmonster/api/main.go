@@ -8,11 +8,11 @@ import (
 
 	"github.com/decorickey/go-apps/internal/bmonster/application/usecase"
 	"github.com/decorickey/go-apps/internal/bmonster/presentation/handler"
+	"github.com/decorickey/go-apps/internal/bmonster/presentation/openapi"
 )
 
 func main() {
 	u := usecase.InitializeScrapingUsecase()
-	h := handler.InitializeHandler()
 
 	studios, err := u.FetchStudios()
 	if err != nil {
@@ -28,17 +28,15 @@ func main() {
 		log.Fatal(fmt.Errorf("failed to save Entities: %w", err))
 	}
 
-	log.Println("starting ...")
+	h := handler.InitializeHandler()
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /api/bmonster/studios", h.FetchAllStudios)
-	mux.HandleFunc("GET /api/bmonster/performers", h.FetchAllPerformers)
-	mux.HandleFunc("GET /api/bmonster/studios/{id}/timetable", h.FetchTimetableByStudioID)
-	mux.HandleFunc("GET /api/bmonster/performers/{id}/timetable", h.FetchTimetableByPerformerID)
+	log.Println("starting ...")
+	hh := openapi.HandlerFromMux(h, mux)
 
 	port := ":8080"
 	s := &http.Server{
 		Addr:         port,
-		Handler:      mux,
+		Handler:      hh,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  30 * time.Second,

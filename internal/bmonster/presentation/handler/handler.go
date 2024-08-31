@@ -11,8 +11,8 @@ import (
 )
 
 type Handler interface {
-	FetchAllStudios(http.ResponseWriter, *http.Request)
-	FetchAllPerformers(http.ResponseWriter, *http.Request)
+	GetApiBmonsterPerformers(http.ResponseWriter, *http.Request)
+	GetApiBmonsterStudios(http.ResponseWriter, *http.Request)
 	FetchTimetableByStudioID(http.ResponseWriter, *http.Request)
 	FetchTimetableByPerformerID(http.ResponseWriter, *http.Request)
 }
@@ -35,7 +35,7 @@ type handler struct {
 	timetableDao dao.TimetableDAO
 }
 
-func (h handler) FetchAllStudios(w http.ResponseWriter, r *http.Request) {
+func (h handler) GetApiBmonsterPerformers(w http.ResponseWriter, r *http.Request) {
 	studios, err := h.studioDao.FetchAll()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -49,7 +49,7 @@ func (h handler) FetchAllStudios(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func (h handler) FetchAllPerformers(w http.ResponseWriter, r *http.Request) {
+func (h handler) GetApiBmonsterStudios(w http.ResponseWriter, r *http.Request) {
 	performers, err := h.performerDao.FetchAll()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
