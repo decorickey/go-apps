@@ -16,6 +16,61 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
+// MockScrapingRepository is a mock of ScrapingRepository interface.
+type MockScrapingRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockScrapingRepositoryMockRecorder
+}
+
+// MockScrapingRepositoryMockRecorder is the mock recorder for MockScrapingRepository.
+type MockScrapingRepositoryMockRecorder struct {
+	mock *MockScrapingRepository
+}
+
+// NewMockScrapingRepository creates a new mock instance.
+func NewMockScrapingRepository(ctrl *gomock.Controller) *MockScrapingRepository {
+	mock := &MockScrapingRepository{ctrl: ctrl}
+	mock.recorder = &MockScrapingRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockScrapingRepository) EXPECT() *MockScrapingRepositoryMockRecorder {
+	return m.recorder
+}
+
+// FetchSchedulesByStudios mocks base method.
+func (m *MockScrapingRepository) FetchSchedulesByStudios(arg0 []entity.Studio) ([]entity.Performer, []entity.Program, []entity.Schedule, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchSchedulesByStudios", arg0)
+	ret0, _ := ret[0].([]entity.Performer)
+	ret1, _ := ret[1].([]entity.Program)
+	ret2, _ := ret[2].([]entity.Schedule)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
+}
+
+// FetchSchedulesByStudios indicates an expected call of FetchSchedulesByStudios.
+func (mr *MockScrapingRepositoryMockRecorder) FetchSchedulesByStudios(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchSchedulesByStudios", reflect.TypeOf((*MockScrapingRepository)(nil).FetchSchedulesByStudios), arg0)
+}
+
+// FetchStudios mocks base method.
+func (m *MockScrapingRepository) FetchStudios() ([]entity.Studio, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchStudios")
+	ret0, _ := ret[0].([]entity.Studio)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchStudios indicates an expected call of FetchStudios.
+func (mr *MockScrapingRepositoryMockRecorder) FetchStudios() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchStudios", reflect.TypeOf((*MockScrapingRepository)(nil).FetchStudios))
+}
+
 // MockStudioRepository is a mock of StudioRepository interface.
 type MockStudioRepository struct {
 	ctrl     *gomock.Controller

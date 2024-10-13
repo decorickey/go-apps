@@ -3,6 +3,11 @@ package repository
 
 import "github.com/decorickey/go-apps/internal/bmonster/domain/entity"
 
+type ScrapingRepository interface {
+	FetchStudios() ([]entity.Studio, error)
+	FetchSchedulesByStudios([]entity.Studio) ([]entity.Performer, []entity.Program, []entity.Schedule, error)
+}
+
 type StudioRepository interface {
 	Save([]entity.Studio) error
 }

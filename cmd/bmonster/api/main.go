@@ -14,18 +14,13 @@ import (
 func main() {
 	u := usecase.InitializeScrapingUsecase()
 
-	studios, err := u.FetchStudios()
+	studios, performers, programs, schedules, err := u.Handle()
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to fetch studios: %w", err))
-	}
-
-	performers, programs, schedules, err := u.FetchSchedulesByStudios(studios)
-	if err != nil {
-		log.Fatal(fmt.Errorf("failed to fetch schedules: %w", err))
+		log.Fatal(fmt.Errorf("fetch studios: %w", err))
 	}
 
 	if err := u.Save(studios, performers, programs, schedules); err != nil {
-		log.Fatal(fmt.Errorf("failed to save Entities: %w", err))
+		log.Fatal(fmt.Errorf("save Entities: %w", err))
 	}
 
 	h := handler.InitializeHandler()
