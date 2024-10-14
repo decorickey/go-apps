@@ -23,11 +23,11 @@ func main() {
 		log.Fatal(fmt.Errorf("save Entities: %w", err))
 	}
 
-	h := handler.InitializeHandler()
 	mux := http.NewServeMux()
-	log.Println("starting ...")
+	h := handler.InitializeHandler()
 	hh := openapi.HandlerFromMux(h, mux)
 
+	log.Println("starting ...")
 	port := ":8080"
 	s := &http.Server{
 		Addr:         port,

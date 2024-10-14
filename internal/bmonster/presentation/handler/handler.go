@@ -36,12 +36,12 @@ type handler struct {
 }
 
 func (h handler) GetApiBmonsterPerformers(w http.ResponseWriter, r *http.Request) {
-	studios, err := h.studioDao.FetchAll()
+	performers, err := h.performerDao.FetchAll()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	b, err := json.Marshal(studios)
+	b, err := json.Marshal(performers)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
